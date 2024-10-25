@@ -75,17 +75,15 @@ void handle_message(cmu_socket_t *sock, uint8_t *pkt) {
           sock->window.last_ack_received = ack;
           sock->hs_ack_received = true;
         }
-        break;
       }
-      else {
+      else if (!sock->in_handshake_phase) {
         // Normal ack case
         uint32_t ack = get_ack(hdr);
         if (after(ack, sock->window.last_ack_received)) {
           sock->window.last_ack_received = ack;
         }
-        break;
       }
-      
+      break;
     }
     case SYN_FLAG_MASK: {
       sock->hs_syn_received = true;

@@ -17,6 +17,8 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <time.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -56,7 +58,8 @@ int cmu_socket(cmu_socket_t *sock, const cmu_socket_type_t socket_type,
   // FIXME: Sequence numbers should be randomly initialized. The next expected
   // sequence number should be initialized according to the SYN packet from the
   // other side of the connection.
-  sock->window.last_ack_received = 0;
+  srand(time(NULL));
+  sock->window.last_ack_received = (uint32_t)(rand() % 1001);
   sock->window.next_seq_expected = 0;
 
   if (pthread_cond_init(&sock->wait_cond, NULL) != 0) {
