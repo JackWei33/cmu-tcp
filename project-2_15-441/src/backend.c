@@ -122,9 +122,9 @@ void handle_message(cmu_socket_t *sock, uint8_t *pkt) {
       break;
     }
     default: {
-      // if (sock->in_handshake_phase) {
-      //   return;
-      // }
+      if (sock->in_handshake_phase) {
+        return;
+      }
       socklen_t conn_len = sizeof(sock->conn);
       uint32_t seq = sock->window.last_ack_received;
 
