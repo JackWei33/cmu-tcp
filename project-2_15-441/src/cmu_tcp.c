@@ -22,6 +22,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "backend.h"
 
@@ -58,9 +59,12 @@ int cmu_socket(cmu_socket_t *sock, const cmu_socket_type_t socket_type,
   // FIXME: Sequence numbers should be randomly initialized. The next expected
   // sequence number should be initialized according to the SYN packet from the
   // other side of the connection.
-  srand(time(0));
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  srand(tv.tv_sec * 1000000 + tv.tv_usec);
+
   sock->window.last_ack_received = (uint32_t)(rand() % 10000);
-  sock->window.next_seq_expected = (uint32_t)(rand() % 10000);
+  sock->window.next_seq_expected = 0;
 
   if (pthread_cond_init(&sock->wait_cond, NULL) != 0) {
     perror("ERROR condition variable not set\n");
