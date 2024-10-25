@@ -54,13 +54,11 @@ int cmu_socket(cmu_socket_t *sock, const cmu_socket_type_t socket_type,
   sock->hs_syn_received = false;
   sock->hs_ack_received = false;
   sock->hs_syn_ack_expected_ack = 0;
-  sock->hs_data_pkts = NULL;
-  sock->hs_data_pkts_len = 0;
 
   // FIXME: Sequence numbers should be randomly initialized. The next expected
   // sequence number should be initialized according to the SYN packet from the
   // other side of the connection.
-  srand(time(NULL));
+  srand(time(0));
   sock->window.last_ack_received = (uint32_t)(rand() % 10000);
   sock->window.next_seq_expected = 0;
 

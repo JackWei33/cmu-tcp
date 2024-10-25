@@ -24,6 +24,7 @@ def test_pcap_packets_max_size():
     )
     packets = rdpcap(PCAP)
     if len(packets) <= 10:
+        print("Here")
         print("Test Failed")
         return
     for pkt in packets:
