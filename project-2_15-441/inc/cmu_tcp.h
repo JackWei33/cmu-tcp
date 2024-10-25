@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <stdbool.h>
 
 #include "cmu_packet.h"
 #include "grading.h"
@@ -60,6 +61,10 @@ typedef struct {
   int dying;
   pthread_mutex_t death_lock;
   window_t window;
+  bool in_handshake_phase;     // Handshake variables
+  bool hs_syn_received;
+  bool hs_ack_received;
+  uint32_t hs_syn_ack_expected_ack;
 } cmu_socket_t;
 
 /*

@@ -21,7 +21,7 @@ from scapy.layers.l2 import Ether
 from scapy.layers.inet import IP, UDP
 
 CODE_DIR = "/vagrant/project-2_15-441"
-PCAP = "/vagrant/project-2_15-441/tests/test.pcap"
+PCAP = "/vagrant/project-2_15-441/cap.pcap"
 IFNAME = os.getenv("IFNAME")
 
 # Which host are we running this pytest script on, server or client?

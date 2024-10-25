@@ -60,7 +60,8 @@ def test_pcap_acks():
             elif pkt[CMUTCP].flags == ACK_MASK:
                 ack_nums.append(pkt[CMUTCP].ack_num)
 
-    # Probably not the best way to do this test!
+    # Remove first ack - part of handshake
+    ack_nums.remove(min(ack_nums))
     if set(expected_acks) == set(ack_nums):
         print("Test Passed")
     else:

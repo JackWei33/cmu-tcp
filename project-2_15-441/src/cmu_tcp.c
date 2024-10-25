@@ -48,6 +48,11 @@ int cmu_socket(cmu_socket_t *sock, const cmu_socket_type_t socket_type,
   sock->dying = 0;
   pthread_mutex_init(&(sock->death_lock), NULL);
 
+  sock->in_handshake_phase = true;
+  sock->hs_syn_received = false;
+  sock->hs_ack_received = false;
+  sock->hs_syn_ack_expected_ack = 0;
+
   // FIXME: Sequence numbers should be randomly initialized. The next expected
   // sequence number should be initialized according to the SYN packet from the
   // other side of the connection.
