@@ -113,13 +113,16 @@ void handle_message(cmu_socket_t *sock, uint8_t *pkt) {
         }
         break;
       }
-      else {
+      else if (!sock->in_handshake_phase) {
         // Normal ack case
         uint32_t ack = get_ack(hdr);
         if (after(ack, sock->window.last_ack_received)) {
           sock->window.last_ack_received = ack;
         }
         // Fall through to respond to message
+      }
+      else {
+        break;
       }
     }
     default: {
