@@ -79,6 +79,8 @@ make
 
 # Start the server.
 ./server
+
+cd /vagrant/project-2_15-441/ & make & ./utils/capture_packets.sh start cap.pcap & ./server
 ```
 
 On the **client** terminal:
@@ -91,6 +93,8 @@ cd /vagrant/project-2_15-441/
 
 # Start the client.
 ./client
+
+cd /vagrant/project-2_15-441/ & ./client
 ```
 
 Once the server is done. Stop the packet capture and analyze the packets. In the **server** terminal:
@@ -99,7 +103,9 @@ Once the server is done. Stop the packet capture and analyze the packets. In the
 ./utils/capture_packets.sh stop cap.pcap
 
 # Analyze the packets.
-./utils/capture_packets.sh analyze cap.pcap
+sudo ./utils/capture_packets.sh analyze cap.pcap
+
+./utils/capture_packets.sh stop cap.pcap & sudo ./utils/capture_packets.sh analyze cap.pcap
 ```
 
 You can also access the capture file (`cap.pcap` in this example) from your host machine and open it with Wireshark. You should use the `utils/tcp.lua` plugin to decode CMU-TCP headers. To do so, copy the file to the directory described in <https://www.wireshark.org/docs/wsug_html_chunked/ChPluginFolders.html>.

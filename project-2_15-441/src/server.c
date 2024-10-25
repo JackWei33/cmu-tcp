@@ -33,21 +33,21 @@ void functionality(cmu_socket_t *sock) {
   FILE *fp;
   int n;
 
-  n = cmu_read(sock, buf, BUF_SIZE, NO_FLAG);
-  printf("R: %s\n", buf);
-  printf("N: %d\n", n);
+  // n = cmu_read(sock, buf, BUF_SIZE, NO_FLAG);
+  // printf("R: %s\n", buf);
+  // printf("N: %d\n", n);
   cmu_write(sock, "hi there", 9);
-  n = cmu_read(sock, buf, 200, NO_FLAG);
-  printf("R: %s\n", buf);
-  printf("N: %d\n", n);
+  // n = cmu_read(sock, buf, 200, NO_FLAG);
+  // printf("R: %s\n", buf);
+  // printf("N: %d\n", n);
   cmu_write(sock, "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 44);
 
-  sleep(1);
-  n = cmu_read(sock, buf, BUF_SIZE, NO_FLAG);
-  printf("N: %d\n", n);
-  fp = fopen("/tmp/file.c", "w");
-  fwrite(buf, 1, n, fp);
-  fclose(fp);
+  // sleep(1);
+  // n = cmu_read(sock, buf, BUF_SIZE, NO_FLAG);
+  // printf("N: %d\n", n);
+  // fp = fopen("/tmp/file.c", "w");
+  // fwrite(buf, 1, n, fp);
+  // fclose(fp);
 }
 
 int main() {

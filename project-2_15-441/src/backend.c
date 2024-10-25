@@ -123,46 +123,54 @@ void handle_message(cmu_socket_t *sock, uint8_t *pkt) {
     }
     default: {
       if (sock->in_handshake_phase) {
-        return;
+        // Add in data packet to be processed later
+        if (sock->hs_data_pkts == NULL)
+          sock->hs_data_pkts = malloc(sizeof(uint8_t*));
+        else
+          sock->hs_data_pkts = realloc(sock->hs_data_pkts, sizeof(uint8_t*) + sock->hs_data_pkts_len);
+        sock->hs_data_pkts[sock->hs_data_pkts_len] = pkt;
+        sock->hs_data_pkts_len += 1;
       }
-      socklen_t conn_len = sizeof(sock->conn);
-      uint32_t seq = sock->window.last_ack_received;
+      else {
+        socklen_t conn_len = sizeof(sock->conn);
+        uint32_t seq = sock->window.last_ack_received;
 
-      // No payload.
-      uint8_t *payload = NULL;
-      uint16_t payload_len = 0;
+        // No payload.
+        uint8_t *payload = NULL;
+        uint16_t payload_len = 0;
 
-      // No extension.
-      uint16_t ext_len = 0;
-      uint8_t *ext_data = NULL;
+        // No extension.
+        uint16_t ext_len = 0;
+        uint8_t *ext_data = NULL;
 
-      uint16_t src = sock->my_port;
-      uint16_t dst = ntohs(sock->conn.sin_port);
-      uint32_t ack = get_seq(hdr) + get_payload_len(pkt);
-      uint16_t hlen = sizeof(cmu_tcp_header_t);
-      uint16_t plen = hlen + payload_len;
-      uint8_t flags = ACK_FLAG_MASK;
-      uint16_t adv_window = 1;
-      uint8_t *response_packet =
-          create_packet(src, dst, seq, ack, hlen, plen, flags, adv_window,
-                        ext_len, ext_data, payload, payload_len);
-      sendto(sock->socket, response_packet, plen, 0,
-             (struct sockaddr *)&(sock->conn), conn_len);
-             
-      free(response_packet);
+        uint16_t src = sock->my_port;
+        uint16_t dst = ntohs(sock->conn.sin_port);
+        uint32_t ack = get_seq(hdr) + get_payload_len(pkt);
+        uint16_t hlen = sizeof(cmu_tcp_header_t);
+        uint16_t plen = hlen + payload_len;
+        uint8_t flags = ACK_FLAG_MASK;
+        uint16_t adv_window = 1;
+        uint8_t *response_packet =
+            create_packet(src, dst, seq, ack, hlen, plen, flags, adv_window,
+                          ext_len, ext_data, payload, payload_len);
+        sendto(sock->socket, response_packet, plen, 0,
+              (struct sockaddr *)&(sock->conn), conn_len);
+              
+        free(response_packet);
 
-      seq = get_seq(hdr);
+        seq = get_seq(hdr);
 
-      if (seq == sock->window.next_seq_expected) {
-        sock->window.next_seq_expected = seq + get_payload_len(pkt);
-        payload_len = get_payload_len(pkt);
-        payload = get_payload(pkt);
+        if (seq == sock->window.next_seq_expected) {
+          sock->window.next_seq_expected = seq + get_payload_len(pkt);
+          payload_len = get_payload_len(pkt);
+          payload = get_payload(pkt);
 
-        // Make sure there is enough space in the buffer to store the payload.
-        sock->received_buf =
-            realloc(sock->received_buf, sock->received_len + payload_len);
-        memcpy(sock->received_buf + sock->received_len, payload, payload_len);
-        sock->received_len += payload_len;
+          // Make sure there is enough space in the buffer to store the payload.
+          sock->received_buf =
+              realloc(sock->received_buf, sock->received_len + payload_len);
+          memcpy(sock->received_buf + sock->received_len, payload, payload_len);
+          sock->received_len += payload_len;
+        }
       }
     }
   }
@@ -311,6 +319,13 @@ void client_handshake(cmu_socket_t *sock) {
   }
 
   sock->in_handshake_phase = false;
+
+  for (int i = 0; i < sock->hs_data_pkts_len; i++) {
+    handle_message(sock, sock->hs_data_pkts[i]);
+  }
+  if (sock->hs_data_pkts != NULL) {
+    free(sock->hs_data_pkts);
+  }
 }
 
 
@@ -351,6 +366,13 @@ void server_handshake(cmu_socket_t *sock) {
   }
   
   sock->in_handshake_phase = false;
+
+  for (int i = 0; i < sock->hs_data_pkts_len; i++) {
+    handle_message(sock, sock->hs_data_pkts[i]);
+  }
+  if (sock->hs_data_pkts != NULL) {
+    free(sock->hs_data_pkts);
+  }
 }
 
 void *begin_backend(void *in) {
