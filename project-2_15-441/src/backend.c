@@ -320,13 +320,14 @@ void multi_send(cmu_socket_t *sock, uint8_t *data, int buf_len) {
     // Grab whole window, send them all
     // Loop check_for_data until we time out, go back to beginning of loop
     // If something got acked, send out more data
-    send_window(sock, data, left, right, initial_seq_num);
     long long last_send_ts = current_timestamp_ms();
+    send_window(sock, data, left, right, initial_seq_num);
+    
 
     while (1) {
       int initial_left = left;
 
-      int timeout_length = 1900 - (int)(current_timestamp_ms() - last_send_ts);
+      int timeout_length = DEFAULT_TIMEOUT - (int)(current_timestamp_ms() - last_send_ts);
       if (timeout_length <= 0) {
         break;
       }
