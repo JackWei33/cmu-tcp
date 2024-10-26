@@ -335,7 +335,7 @@ void multi_send(cmu_socket_t *sock, uint8_t *data, int buf_len) {
       left = sock->window.last_ack_received - initial_seq_num;
       int acked_bytes = left - initial_left;
 
-      send_window(sock, data, left, right, MIN(right + acked_bytes, buf_len));
+      send_window(sock, data, right, MIN(right + acked_bytes, buf_len), initial_seq_num);
       right = MIN(right + acked_bytes, buf_len);
 
       if (left >= buf_len) {
