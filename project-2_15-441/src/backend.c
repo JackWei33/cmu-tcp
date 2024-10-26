@@ -328,7 +328,7 @@ void multi_send(cmu_socket_t *sock, uint8_t *data, int buf_len) {
       int initial_left = left;
 
       int timeout_length = DEFAULT_TIMEOUT - (int)(current_timestamp_ms() - last_send_ts);
-      if (timeout_length <= 0) {
+      if (timeout_length <= 100) {
         break;
       }
       check_for_data(sock, TIMEOUT, timeout_length);
