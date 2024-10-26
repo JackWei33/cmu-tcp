@@ -280,6 +280,71 @@ void single_send(cmu_socket_t *sock, uint8_t *data, int buf_len) {
   }
 }
 
+void send_window(cmu_socket_t *sock, uint8_t *data, int left, int right, uint32_t initial_seq_num) {
+  uint8_t *msg;
+  size_t conn_len = sizeof(sock->conn);
+  int sockfd = sock->socket;
+
+  int index = left;
+  while (index < right) {
+    uint16_t payload_len = MIN((uint32_t)(right - index), (uint32_t)MSS);
+
+    uint16_t src = sock->my_port;
+    uint16_t dst = ntohs(sock->conn.sin_port);
+    uint32_t seq = initial_seq_num + (uint32_t)index;
+    uint32_t ack = sock->window.next_seq_expected;
+    uint16_t hlen = sizeof(cmu_tcp_header_t);
+    uint16_t plen = hlen + payload_len;
+    uint8_t flags = 0;
+    uint16_t adv_window = 1;
+    uint16_t ext_len = 0;
+    uint8_t *ext_data = NULL;
+    uint8_t *payload = data + index;
+
+    msg = create_packet(src, dst, seq, ack, hlen, plen, flags, adv_window,
+                        ext_len, ext_data, payload, payload_len);
+
+    sendto(sockfd, msg, plen, 0, (struct sockaddr *)&(sock->conn),
+           conn_len);
+
+    index += payload_len;
+  }
+}
+
+void multi_send(cmu_socket_t *sock, uint8_t *data, int buf_len) {
+  uint32_t initial_seq_num = sock->window.last_ack_received;
+  int left = 0;
+  int right = MIN(CP1_WINDOW_SIZE, (long unsigned int)buf_len);
+
+  while (left < buf_len) {
+    // Grab whole window, send them all
+    // Loop check_for_data until we time out, go back to beginning of loop
+    // If something got acked, send out more data
+    send_window(sock, data, left, right, initial_seq_num);
+    long long last_send_ts = current_timestamp_ms();
+
+    while (1) {
+      int initial_left = left;
+
+      int timeout_length = DEFAULT_TIMEOUT - (int)(current_timestamp_ms() - last_send_ts);
+      if (timeout_length <= 0) {
+        break;
+      }
+      check_for_data(sock, TIMEOUT, timeout_length);
+      
+      left = sock->window.last_ack_received - initial_seq_num;
+      int acked_bytes = left - initial_left;
+
+      send_window(sock, data, left, right, MIN(right + acked_bytes, buf_len));
+      right = MIN(right + acked_bytes, buf_len);
+
+      if (left >= buf_len) {
+        break;
+      }
+    }
+  }
+}
+
 
 void client_handshake(cmu_socket_t *sock) {
   sock->hs_syn_ack_expected_ack = sock->window.last_ack_received + 1;
@@ -391,7 +456,7 @@ void *begin_backend(void *in) {
       free(sock->sending_buf);
       sock->sending_buf = NULL;
       pthread_mutex_unlock(&(sock->send_lock));
-      single_send(sock, data, buf_len);
+      multi_send(sock, data, buf_len);
       free(data);
     } else {
       pthread_mutex_unlock(&(sock->send_lock));

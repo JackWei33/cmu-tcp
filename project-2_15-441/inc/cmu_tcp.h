@@ -65,6 +65,7 @@ typedef struct {
   bool hs_syn_received;
   bool hs_ack_received;
   uint32_t hs_syn_ack_expected_ack;
+
 } cmu_socket_t;
 
 /*
