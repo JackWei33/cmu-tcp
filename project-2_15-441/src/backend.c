@@ -312,7 +312,7 @@ void send_window(cmu_socket_t *sock, uint8_t *data, int left, int right, uint32_
 }
 
 void multi_send(cmu_socket_t *sock, uint8_t *data, int buf_len) {
-  uint32_t initial_seq_num = sock->window.last_ack_received;
+  uint32_t initial_seq_num = sock->window.last_ack_received - 1;
   int left = 0;
   int right = MIN(CP1_WINDOW_SIZE, (long unsigned int)buf_len);
 
