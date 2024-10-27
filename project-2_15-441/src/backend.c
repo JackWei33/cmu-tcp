@@ -295,7 +295,7 @@ void send_window(cmu_socket_t *sock, uint8_t *data, int left, int right, uint32_
     uint32_t ack = sock->window.next_seq_expected;
     uint16_t hlen = sizeof(cmu_tcp_header_t);
     uint16_t plen = hlen + payload_len;
-    uint8_t flags = 0;
+    uint8_t flags = ACK_FLAG_MASK;
     uint16_t adv_window = 1;
     uint16_t ext_len = 0;
     uint8_t *ext_data = NULL;
